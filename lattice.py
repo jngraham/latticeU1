@@ -4,14 +4,23 @@
 #
 #########################################################################################
 
-import numpy as np
-import matplotlib as mp
+import numpy as np;
+import matplotlib as mp;
+
+from update import xlink;
+from update import ylink;
+from update import tlink;
+
+from operators import plaquette_operator;
+from operators import m_plus;
+from operators import m_minus;
+from operators import flux;
 
 #########################################################################################
 #
 # Our method is to create a numpy array with the appropriate number of sites (array entries).
-# Each entry consists of a tuple (x,y,t) indicating the value of the phase of the U(1) element
-# pointing away from the site in, respectively, the x, y or t direction.
+# The link is accessed through the fourth coordinate in the array, which is 0, 1 or 2,
+# corresponding to links int the x, y, t directions.
 #
 # We will have update methods for the x, y and t links, which will be largely identical.
 # Then we will iterate through the sites on the lattice until we have gone through once
@@ -31,7 +40,7 @@ N_samples = 1;
 N_equilibration_configs = 1;
 N_configs = N_configs_per_sample*N_samples;
 
-lattice = np.full((Lx, Ly, Lt), (0, 0, 0));
+lattice = np.zeros((Lx, Ly, Lt,3));
 
 #########################################################################################
 #
@@ -48,56 +57,46 @@ lattice = np.full((Lx, Ly, Lt), (0, 0, 0));
 #########################################################################################
 
 avg_plaquette = np.zeros(N_configs);
-jPC_plus = np.zeros(Lt, N_configs);
-jPC_minus = np.zeros(Lt, N_configs);
-wilson_loop = np.zeros(Lt, N_configs);
+jPC_plus = np.zeros((Lt, N_configs));
+jPC_minus = np.zeros((Lt, N_configs));
+wilson_loop = np.zeros((Lt, N_configs));
 
 #########################################################################################
 #
-# Create a set of random phases within +-Pi/6 ~0.5. They need to come in +- pairs to ensure
-# ergodicity. We also need sufficiently many to help with ergodicity.
+# Update our lattice appropriately many times to erase the memory of the zeros, then
+# do the "science run" and put data into our data arrays
 #
 #########################################################################################
 
-V_size = 200;
+for i in xrange(N_equilibration_configs):
+    for x in xrange(Lx):
+        for y in xrange(Ly):
+            for t in xrange(Lt):
+                lattice[x,y,t,0]=xlink(x,y,t);
+                lattice[x,y,t,1]=xlink(x,y,t);
+                lattice[x,y,t,2]=tlink(x,y,t);
 
-mu, sigma = 0, 0.5;
-samples = np.random.normal(mu, sigma, V_size%2);
-
-V = np.append(samples, -samples);
+for j in xrange(N_configs):
+    for x in xrange(Lx):
+        for y in xrange(Ly):
+            for t in xrange(Lt):
+                lattice[x,y,t,0]=xlink(x,y,t);
+                lattice[x,y,t,1]=ylink(x,y,t);
+                lattice[x,y,t,2]=tlink(x,y,t);
+    avg_plaquette[j]=plaquette_operator(lattice);
 
 #########################################################################################
 #
-# Create our set of x, y and t link update functions
+# Here we save some time by evaluating the m++, m-- and flux operators at n_t=0,
+# then passing them into the functions that get the products of operators
 #
 #########################################################################################
 
-def xlink(int x, int y, int t)
-{
-return 0;
-}
+    plus_zero=0;
+    minus_zero=0;
+    flux_zero=0;
 
-def ylink(int x, int y, int t)
-{
-return 0;
-}
-def tlink(int x, int y, int t)
-{
-return 0;
-}
-#########################################################################################
-#
-# Redefine how we add and subtract one to indices so I don't have to worry about the edges
-# of the lattice because I am lazy
-#
-#########################################################################################
-
-def plusone(int a, int L)
-{
-return (a+1)%L;
-}
-
-def minusone(int a, int L)
-{
-return (a+L-1)%L;
-}
+    for t in xrange(Lt):
+        jPC_plus[t,j]=m_plus(lattice, plus_zero);
+        jPC_minus[t,j]=m_minus(lattice, minus_zero);
+        wilson_loop[t,j]=flux(lattice, flux_zero);
