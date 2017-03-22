@@ -94,33 +94,75 @@ V = np.append(samples, -samples);
 
 def xlink(x, y, t):
     old_link = lattice[x,y,t,0];
-    new_link = oldlink + random.choice(V)
+    new_link = old_link + random.choice(V);
 
     # staples in the xy plane; i've dispensed with descriptive variable names now
-    staple1 = lattice[plusone(x),y,t,1]-lattice[x,plusone(y),t,0]-lattice[x,y,t,1];
-    staple2 = -lattice[plusone(x),minusone(y),t,1]-lattice[x,minusone(y),t,0]+lattice[x,minusone(y),1];
+    staple1 = lattice[plusone(x,Lx),y,t,1]-lattice[x,plusone(y,Ly),t,0]-lattice[x,y,t,1];
+    staple2 = -lattice[plusone(x,Lx),minusone(y,Ly),t,1]-lattice[x,minusone(y,Ly),t,0]+lattice[x,minusone(y,Ly),t,1];
 
     # staples in the xt plane
-    staple3 = lattice[plusone(x),y,t,2]-lattice[x,y,plusone(t),0]-lattice[x,y,t,2];
-    staple4 = -lattice[plusone(x),y,minusone(t),2]-lattice[x,y,minusone(t),0]+lattice[x,y,minusone(t),2];
+    staple3 = lattice[plusone(x,Lx),y,t,2]-lattice[x,y,plusone(t,Lt),0]-lattice[x,y,t,2];
+    staple4 = -lattice[plusone(x,Lx),y,minusone(t,Lt),2]-lattice[x,y,minusone(t,Lt),0]+lattice[x,y,minusone(t,Lt),2];
 
-    old_action = math.cos(4*old_link+staple1+staple2+staple3+staple4);
-    new_action = math.cos(4*new_link+staple1+staple2+staple3+staple4);
+    old_action = np.cos(4*old_link+staple1+staple2+staple3+staple4);
+    new_action = np.cos(4*new_link+staple1+staple2+staple3+staple4);
 
-    C = math.exp(-beta*new_action)/math.exp(-beta*old_action);
+    C = np.exp(-beta*new_action)/np.exp(-beta*old_action);
 
-    z = random.random();
+    z = np.random.random();
 
-    if z < C:
+    if z<C:
         return new_link;
     else:
         return old_link;
 
 def ylink(x, y, t):
-    return 0;
+    old_link = lattice[x,y,t,1];
+    new_link = old_link + random.choice(V);
+
+    # staples in the xy plane
+    staple1 = lattice[x,plusone(y,Ly),t,0]-lattice[plusone(x,Lx),y,t,1]-lattice[x,y,t,0];
+    staple2 = -lattice[minusone(x,Lx),plusone(y,Ly),t,0]-lattice[minusone(x,Lx),y,t,1]+lattice[minusone(x,Lx),y,t,0];
+
+    # staples in the yt plane
+    staple3 = lattice[x,plusone(y,Ly),t,2]-lattice[x,y,plusone(t,Lt),1]-lattice[x,y,t,2];
+    staple4 = -lattice[x,plusone(y,Ly),minusone(t,Lt),2]-lattice[x,y,minusone(t,Lt),1]+lattice[x,y,minusone(t,Lt),2];
+
+    old_action = np.cos(4*old_link+staple1+staple2+staple3+staple4);
+    new_action = np.cos(4*new_link+staple1+staple2+staple3+staple4);
+
+    C = np.exp(-beta*new_action)/np.exp(-beta*old_action);
+
+    z = random.random();
+
+    if np.less(z,C):
+        return new_link;
+    else:
+        return old_link;
 
 def tlink(x, y, t):
-    return 0;
+    old_link = lattice[x,y,t,2];
+    new_link = old_link + random.choice(V);
+
+    # staples in the xt plane
+    staple1 = lattice[x,y,plusone(t,Lt),0]-lattice[plusone(x,Lx),y,t,2]-lattice[x,y,t,0];
+    staple2 = -lattice[minusone(x,Lx),y,plusone(t,Lt),0]-lattice[minusone(x,Lx),y,t,2]+lattice[minusone(x,Lx),y,t,0];
+
+    # staples in the yt plane
+    staple3 = lattice[x,y,plusone(t,Lt),1]-lattice[x,plusone(y,Ly),t,2]-lattice[x,y,t,1];
+    staple4 = -lattice[x,minusone(y,Ly),plusone(t,Lt),1]-lattice[x,minusone(y,Ly),t,2]+lattice[x,minusone(y,Ly),t,1];
+
+    old_action = np.cos(4*old_link+staple1+staple2+staple3+staple4);
+    new_action = np.cos(4*new_link+staple1+staple2+staple3+staple4);
+
+    C = np.exp(-beta*new_action)/np.exp(-beta*old_action);
+
+    z = random.random();
+
+    if np.less(z,C):
+        return new_link;
+    else:
+        return old_link;
 
 ##########################################################################################
 #
@@ -152,7 +194,7 @@ for i in xrange(N_equilibration_configs):
         for y in xrange(Ly):
             for t in xrange(Lt):
                 lattice[x,y,t,0]=xlink(x,y,t);
-                lattice[x,y,t,1]=xlink(x,y,t);
+                lattice[x,y,t,1]=ylink(x,y,t);
                 lattice[x,y,t,2]=tlink(x,y,t);
 
 for j in xrange(N_configs):
@@ -162,6 +204,7 @@ for j in xrange(N_configs):
                 lattice[x,y,t,0]=xlink(x,y,t);
                 lattice[x,y,t,1]=ylink(x,y,t);
                 lattice[x,y,t,2]=tlink(x,y,t);
+
     avg_plaquette[j]=plaquette_operator(lattice);
 
 #########################################################################################
