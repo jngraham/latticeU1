@@ -7,15 +7,6 @@
 import numpy as np;
 import matplotlib as mp;
 
-from update import xlink;
-from update import ylink;
-from update import tlink;
-
-from operators import plaquette_operator;
-from operators import m_plus;
-from operators import m_minus;
-from operators import flux;
-
 #########################################################################################
 #
 # Our method is to create a numpy array with the appropriate number of sites (array entries).
@@ -30,9 +21,9 @@ from operators import flux;
 #
 #########################################################################################
 
-Lx=10;
-Ly=10;
-Lt=10;
+Lx=1;
+Ly=2;
+Lt=3;
 
 N_configs_per_sample = 1;
 N_samples = 1;
@@ -41,6 +32,8 @@ N_equilibration_configs = 1;
 N_configs = N_configs_per_sample*N_samples;
 
 lattice = np.zeros((Lx, Ly, Lt,3));
+
+print lattice.shape;
 
 #########################################################################################
 #
@@ -60,6 +53,67 @@ avg_plaquette = np.zeros(N_configs);
 jPC_plus = np.zeros((Lt, N_configs));
 jPC_minus = np.zeros((Lt, N_configs));
 wilson_loop = np.zeros((Lt, N_configs));
+
+#########################################################################################
+#
+# Because numpy arrays can handle negative indices but not large positive ones, we
+# rewrite our addition- and subtraction-by-one so we don't have to think too hard when
+# updating our link matrices.
+#
+#########################################################################################
+
+def plusone(a, L):
+    return (a+1)%L;
+
+def minusone(a, L):
+    return (a+L-1)%L;
+
+#########################################################################################
+#
+# Create a set of random phases within +-Pi/6 ~0.5. They need to come in +- pairs to ensure
+# ergodicity. We also need sufficiently many to help with ergodicity.
+#
+#########################################################################################
+
+V_size = 200;
+
+mu, sigma = 0, 0.5;
+samples = np.random.normal(mu, sigma, V_size/2);
+
+V = np.append(samples, -samples);
+
+#########################################################################################
+#
+# Create our set of x, y and t link update functions
+#
+#########################################################################################
+
+def xlink(x, y, t):
+    return 0;
+
+def ylink(x, y, t):
+    return 0;
+
+def tlink(x, y, t):
+    return 0;
+
+##########################################################################################
+#
+# Creates our set of operator functions
+#
+#########################################################################################
+
+def plaquette_operator(nparray):
+    return 0;
+
+def m_plus(nparray, zero):
+    return 0;
+
+def m_minus(nparray, zero):
+    return 0;
+
+def flux(nparray, zero):
+    return 0;
 
 #########################################################################################
 #
