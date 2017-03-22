@@ -6,6 +6,10 @@
 
 import numpy as np;
 import matplotlib as mp;
+import random;
+import math;
+
+random.seed(1);
 
 #########################################################################################
 #
@@ -21,9 +25,11 @@ import matplotlib as mp;
 #
 #########################################################################################
 
-Lx=1;
-Ly=2;
-Lt=3;
+beta = 2.0;
+
+Lx=10;
+Ly=10;
+Lt=10;
 
 N_configs_per_sample = 1;
 N_samples = 1;
@@ -32,8 +38,6 @@ N_equilibration_configs = 1;
 N_configs = N_configs_per_sample*N_samples;
 
 lattice = np.zeros((Lx, Ly, Lt,3));
-
-print lattice.shape;
 
 #########################################################################################
 #
@@ -89,7 +93,28 @@ V = np.append(samples, -samples);
 #########################################################################################
 
 def xlink(x, y, t):
-    return 0;
+    old_link = lattice[x,y,t,0];
+    new_link = oldlink + random.choice(V)
+
+    # staples in the xy plane; i've dispensed with descriptive variable names now
+    staple1 = lattice[plusone(x),y,t,1]-lattice[x,plusone(y),t,0]-lattice[x,y,t,1];
+    staple2 = -lattice[plusone(x),minusone(y),t,1]-lattice[x,minusone(y),t,0]+lattice[x,minusone(y),1];
+
+    # staples in the xt plane
+    staple3 = lattice[plusone(x),y,t,2]-lattice[x,y,plusone(t),0]-lattice[x,y,t,2];
+    staple4 = -lattice[plusone(x),y,minusone(t),2]-lattice[x,y,minusone(t),0]+lattice[x,y,minusone(t),2];
+
+    old_action = math.cos(4*old_link+staple1+staple2+staple3+staple4);
+    new_action = math.cos(4*new_link+staple1+staple2+staple3+staple4);
+
+    C = math.exp(-beta*new_action)/math.exp(-beta*old_action);
+
+    z = random.random();
+
+    if z < C:
+        return new_link;
+    else:
+        return old_link;
 
 def ylink(x, y, t):
     return 0;
