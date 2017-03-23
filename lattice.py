@@ -10,7 +10,7 @@ import matplotlib as mp;
 import random;
 import math;
 
-random.seed(1);
+# random.seed(1);
 
 #########################################################################################
 #
@@ -232,9 +232,12 @@ for j in xrange(N_configs):
 
     avg_plaquette[j]=plaquette_operator(lattice);
 
-print "mean plaquette = " + np.mean(avg_plaquette)
+print avg_plaquette
 
-print "acceptance rate = " + float(n_acceptances)/n_transitions;
+print "mean plaquette = "
+print np.mean(avg_plaquette)
+
+# print "acceptance rate = " + float(n_acceptances)/n_transitions;
 
 #########################################################################################
 #
