@@ -5,8 +5,12 @@
 #
 #########################################################################################
 
-import lattice_site
-import parameters
+from lattice_site import *
+from parameters import *
+
+from datetime import datetime
+
+starttime = datetime.now()
 
 #########################################################################################
 #
@@ -32,7 +36,7 @@ import parameters
 import numpy as np
 import matplotlib as mp
 
-numpy.random.seed(0);
+np.random.seed(0);
 
 #########################################################################################
 #
@@ -44,29 +48,42 @@ numpy.random.seed(0);
 for x in xrange(Lx):
     for y in xrange(Ly):
         for t in xrange(Lt):
-            lattice[x,y,t] = Site();
+            lattice[x,y,t] = Site(x,y,t);
 
-map(lattice_site.set_neighbours, lattice)
-# for x in xrange(Lx):
-#     for y in xrange(Ly):
-#         for t in xrange(Lt):
-#             lattice[x, y, t].x_next = lattice[(x+1)%Lx, y, t];
-#             lattice[x, y, t].x_prev = lattice[(x+Lx-1)%Lx, y, t];
+
+for i in xrange(Lx):
+    for j in xrange(Ly):
+        map(lambda item: item.set_neighbours(), lattice[i,j,:]);
+
+#########################################################################################
 #
-#             lattice[x, y, t].y_next = lattice[x, (y+1)%Ly, t];
-#             lattice[x, y, t].y_prev = lattice[x, (y+Ly-1)%Ly, t];
+# I was going to be clever and do this in a chequerboard fashion to parallelize over
+# something like
+# X X X X X X
+#  X X X X X X
+# X X X X X X
+#  X X X X X X
+# X X X X X X
+#  X X X X X X
 #
-#             lattice[x, y, t].t_next = lattice[x, y, (t+1)%Lt];
-#             lattice[x, y, t].t_prev = lattice[x, y, (t+Lt-1)%Lt];
+# but since I can only make map() work with one-dimensional arrays, i'm kinda stuck
+#
+#########################################################################################
 
+for k in xrange(N_equilibration_configs):
+    for i in xrange(Lx):
+        for j in xrange(Ly):
+            map(lambda item: item.update_tlink(), lattice[i,j,:]);
 
+    for i in xrange(Lx):
+        for j in xrange(Lt):
+            map(lambda item: item.update_ylink(), lattice[i,:,j]);
 
+    for i in xrange(Ly):
+        for j in xrange(Lt):
+            map(lambda item: item.update_xlink(), lattice[:,i,j]);
 
-
-
-
-
-
+print datetime.now() - starttime
 
 
 

@@ -10,6 +10,10 @@ import matplotlib as mp;
 import random;
 import math;
 
+from datetime import datetime
+
+starttime = datetime.now()
+
 # random.seed(1);
 
 #########################################################################################
@@ -109,8 +113,8 @@ def xlink(x, y, t):
     staple3 = lattice[plusone(x,Lx),y,t,2] - lattice[x,y,plusone(t,Lt),0] - lattice[x,y,t,2];
     staple4 = -lattice[plusone(x,Lx),y,minusone(t,Lt),2] - lattice[x,y,minusone(t,Lt),0] + lattice[x,y,minusone(t,Lt),2];
 
-    old_action = np.cos(4 * old_link + staple1 + staple2 + staple3 + staple4);
-    new_action = np.cos(4 * new_link + staple1 + staple2 + staple3 + staple4);
+    old_action = np.cos(old_link + staple1) + np.cos(old_link + staple2) + np.cos(old_link + staple3) + np.cos(old_link + staple4);
+    new_action = np.cos(new_link + staple1) + np.cos(new_link + staple2) + np.cos(new_link + staple3) + np.cos(new_link + staple4);
 
     C = np.exp(-beta * new_action) / np.exp(-beta * old_action);
 
@@ -134,8 +138,8 @@ def ylink(x, y, t):
     staple3 = lattice[x,plusone(y,Ly),t,2] - lattice[x,y,plusone(t,Lt),1] - lattice[x,y,t,2];
     staple4 = -lattice[x,plusone(y,Ly),minusone(t,Lt),2] - lattice[x,y,minusone(t,Lt),1] + lattice[x,y,minusone(t,Lt),2];
 
-    old_action = np.cos(4 * old_link + staple1 + staple2 + staple3 + staple4);
-    new_action = np.cos(4 * new_link + staple1 + staple2 + staple3 + staple4);
+    old_action = np.cos(old_link + staple1) + np.cos(old_link + staple2) + np.cos(old_link + staple3) + np.cos(old_link + staple4);
+    new_action = np.cos(new_link + staple1) + np.cos(new_link + staple2) + np.cos(new_link + staple3) + np.cos(new_link + staple4);
 
     C = np.exp(-beta * new_action) / np.exp(-beta * old_action);
 
@@ -159,8 +163,8 @@ def tlink(x, y, t):
     staple3 = lattice[x,y,plusone(t,Lt),1] - lattice[x,plusone(y,Ly),t,2] - lattice[x,y,t,1];
     staple4 = -lattice[x,minusone(y,Ly),plusone(t,Lt),1] - lattice[x,minusone(y,Ly),t,2] + lattice[x,minusone(y,Ly),t,1];
 
-    old_action = np.cos(4 * old_link + staple1 + staple2 + staple3 + staple4);
-    new_action = np.cos(4 * new_link + staple1 + staple2 + staple3 + staple4);
+    old_action = np.cos(old_link + staple1) + np.cos(old_link + staple2) + np.cos(old_link + staple3) + np.cos(old_link + staple4);
+    new_action = np.cos(new_link + staple1) + np.cos(new_link + staple2) + np.cos(new_link + staple3) + np.cos(new_link + staple4);
 
     C = np.exp(-beta * new_action) / np.exp(-beta * old_action);
 
@@ -220,22 +224,24 @@ for i in xrange(N_equilibration_configs):
                 lattice[x,y,t,1] = ylink(x,y,t);
                 lattice[x,y,t,2] = tlink(x,y,t);
 
-for j in xrange(N_configs):
-    for x in xrange(Lx):
-        for y in xrange(Ly):
-            for t in xrange(Lt):
-                lattice[x,y,t,0] = xlink(x,y,t);
-                lattice[x,y,t,1] = ylink(x,y,t);
-                lattice[x,y,t,2] = tlink(x,y,t);
+print datetime.now() - starttime
 
-    # print lattice[:,: ,0,0]
-
-    avg_plaquette[j]=plaquette_operator(lattice);
-
-print avg_plaquette
-
-print "mean plaquette = "
-print np.mean(avg_plaquette)
+# for j in xrange(N_configs):
+#     for x in xrange(Lx):
+#         for y in xrange(Ly):
+#             for t in xrange(Lt):
+#                 lattice[x,y,t,0] = xlink(x,y,t);
+#                 lattice[x,y,t,1] = ylink(x,y,t);
+#                 lattice[x,y,t,2] = tlink(x,y,t);
+#
+#     # print lattice[:,: ,0,0]
+#
+#     avg_plaquette[j]=plaquette_operator(lattice);
+#
+# print avg_plaquette
+#
+# print "mean plaquette = "
+# print np.mean(avg_plaquette)
 
 # print "acceptance rate = " + float(n_acceptances)/n_transitions;
 
