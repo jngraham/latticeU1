@@ -1,3 +1,4 @@
+
 #########################################################################################
 #
 # U(1) Lattice Gauge Theory Simulator | James Graham
@@ -21,23 +22,27 @@ random.seed(1);
 # Then we will iterate through the sites on the lattice until we have gone through once
 # Then we do it again.
 #
-# First we define some global length variables and the array
+# First we define some global constants and the array
 #
 #########################################################################################
 
-beta = 2.0;
+beta = 2.2;
 
 Lx=10;
 Ly=10;
 Lt=10;
 
-N_configs_per_sample = 1;
-N_samples = 1;
+N_configs_per_sample = 50;
+N_samples = 50;
 
-N_equilibration_configs = 1;
+N_equilibration_configs = 200;
 N_configs = N_configs_per_sample*N_samples;
 
 lattice = np.zeros((Lx, Ly, Lt,3));
+
+n_links = 3*Lx*Ly*Lt;
+n_transitions = n_links*(N_configs+N_equilibration_configs);
+n_acceptances = 0;
 
 #########################################################################################
 #
@@ -97,21 +102,22 @@ def xlink(x, y, t):
     new_link = old_link + random.choice(V);
 
     # staples in the xy plane; i've dispensed with descriptive variable names now
-    staple1 = lattice[plusone(x,Lx),y,t,1]-lattice[x,plusone(y,Ly),t,0]-lattice[x,y,t,1];
-    staple2 = -lattice[plusone(x,Lx),minusone(y,Ly),t,1]-lattice[x,minusone(y,Ly),t,0]+lattice[x,minusone(y,Ly),t,1];
+    staple1 = lattice[plusone(x,Lx),y,t,1] - lattice[x,plusone(y,Ly),t,0] - lattice[x,y,t,1];
+    staple2 = -lattice[plusone(x,Lx),minusone(y,Ly),t,1] - lattice[x,minusone(y,Ly),t,0] + lattice[x,minusone(y,Ly),t,1];
 
     # staples in the xt plane
-    staple3 = lattice[plusone(x,Lx),y,t,2]-lattice[x,y,plusone(t,Lt),0]-lattice[x,y,t,2];
-    staple4 = -lattice[plusone(x,Lx),y,minusone(t,Lt),2]-lattice[x,y,minusone(t,Lt),0]+lattice[x,y,minusone(t,Lt),2];
+    staple3 = lattice[plusone(x,Lx),y,t,2] - lattice[x,y,plusone(t,Lt),0] - lattice[x,y,t,2];
+    staple4 = -lattice[plusone(x,Lx),y,minusone(t,Lt),2] - lattice[x,y,minusone(t,Lt),0] + lattice[x,y,minusone(t,Lt),2];
 
-    old_action = np.cos(4*old_link+staple1+staple2+staple3+staple4);
-    new_action = np.cos(4*new_link+staple1+staple2+staple3+staple4);
+    old_action = np.cos(4 * old_link + staple1 + staple2 + staple3 + staple4);
+    new_action = np.cos(4 * new_link + staple1 + staple2 + staple3 + staple4);
 
-    C = np.exp(-beta*new_action)/np.exp(-beta*old_action);
+    C = np.exp(-beta * new_action) / np.exp(-beta * old_action);
 
     z = np.random.random();
 
     if z<C:
+        # n_acceptances += 1
         return new_link;
     else:
         return old_link;
@@ -121,21 +127,22 @@ def ylink(x, y, t):
     new_link = old_link + random.choice(V);
 
     # staples in the xy plane
-    staple1 = lattice[x,plusone(y,Ly),t,0]-lattice[plusone(x,Lx),y,t,1]-lattice[x,y,t,0];
-    staple2 = -lattice[minusone(x,Lx),plusone(y,Ly),t,0]-lattice[minusone(x,Lx),y,t,1]+lattice[minusone(x,Lx),y,t,0];
+    staple1 = lattice[x,plusone(y,Ly),t,0] - lattice[plusone(x,Lx),y,t,1] - lattice[x,y,t,0];
+    staple2 = -lattice[minusone(x,Lx),plusone(y,Ly),t,0] - lattice[minusone(x,Lx),y,t,1] + lattice[minusone(x,Lx),y,t,0];
 
     # staples in the yt plane
-    staple3 = lattice[x,plusone(y,Ly),t,2]-lattice[x,y,plusone(t,Lt),1]-lattice[x,y,t,2];
-    staple4 = -lattice[x,plusone(y,Ly),minusone(t,Lt),2]-lattice[x,y,minusone(t,Lt),1]+lattice[x,y,minusone(t,Lt),2];
+    staple3 = lattice[x,plusone(y,Ly),t,2] - lattice[x,y,plusone(t,Lt),1] - lattice[x,y,t,2];
+    staple4 = -lattice[x,plusone(y,Ly),minusone(t,Lt),2] - lattice[x,y,minusone(t,Lt),1] + lattice[x,y,minusone(t,Lt),2];
 
-    old_action = np.cos(4*old_link+staple1+staple2+staple3+staple4);
-    new_action = np.cos(4*new_link+staple1+staple2+staple3+staple4);
+    old_action = np.cos(4 * old_link + staple1 + staple2 + staple3 + staple4);
+    new_action = np.cos(4 * new_link + staple1 + staple2 + staple3 + staple4);
 
-    C = np.exp(-beta*new_action)/np.exp(-beta*old_action);
+    C = np.exp(-beta * new_action) / np.exp(-beta * old_action);
 
     z = random.random();
 
     if np.less(z,C):
+        # n_acceptances += 1
         return new_link;
     else:
         return old_link;
@@ -145,21 +152,22 @@ def tlink(x, y, t):
     new_link = old_link + random.choice(V);
 
     # staples in the xt plane
-    staple1 = lattice[x,y,plusone(t,Lt),0]-lattice[plusone(x,Lx),y,t,2]-lattice[x,y,t,0];
-    staple2 = -lattice[minusone(x,Lx),y,plusone(t,Lt),0]-lattice[minusone(x,Lx),y,t,2]+lattice[minusone(x,Lx),y,t,0];
+    staple1 = lattice[x,y,plusone(t,Lt),0] - lattice[plusone(x,Lx),y,t,2] - lattice[x,y,t,0];
+    staple2 = -lattice[minusone(x,Lx),y,plusone(t,Lt),0] - lattice[minusone(x,Lx),y,t,2] + lattice[minusone(x,Lx),y,t,0];
 
     # staples in the yt plane
-    staple3 = lattice[x,y,plusone(t,Lt),1]-lattice[x,plusone(y,Ly),t,2]-lattice[x,y,t,1];
-    staple4 = -lattice[x,minusone(y,Ly),plusone(t,Lt),1]-lattice[x,minusone(y,Ly),t,2]+lattice[x,minusone(y,Ly),t,1];
+    staple3 = lattice[x,y,plusone(t,Lt),1] - lattice[x,plusone(y,Ly),t,2] - lattice[x,y,t,1];
+    staple4 = -lattice[x,minusone(y,Ly),plusone(t,Lt),1] - lattice[x,minusone(y,Ly),t,2] + lattice[x,minusone(y,Ly),t,1];
 
-    old_action = np.cos(4*old_link+staple1+staple2+staple3+staple4);
-    new_action = np.cos(4*new_link+staple1+staple2+staple3+staple4);
+    old_action = np.cos(4 * old_link + staple1 + staple2 + staple3 + staple4);
+    new_action = np.cos(4 * new_link + staple1 + staple2 + staple3 + staple4);
 
-    C = np.exp(-beta*new_action)/np.exp(-beta*old_action);
+    C = np.exp(-beta * new_action) / np.exp(-beta * old_action);
 
     z = random.random();
 
     if np.less(z,C):
+        # n_acceptances += 1;
         return new_link;
     else:
         return old_link;
@@ -171,7 +179,22 @@ def tlink(x, y, t):
 #########################################################################################
 
 def plaquette_operator(nparray):
-    return 0;
+
+    n_plaquettes = 3*Lx*Ly*Lt;
+    plaquette_sum=0.0;
+
+    for x in xrange(Lx):
+        for y in xrange(Ly):
+            for t in xrange(Lt):
+                xt_phase = lattice[x,y,t,0] + lattice[plusone(x,Lx),y,t,2] - lattice[x,y,plusone(t,Lt),0] - lattice[x,y,t,2];
+                xy_phase = lattice[x,y,t,0] + lattice[plusone(x,Lx),y,t,1] - lattice[x,plusone(y,Ly),t,0] - lattice[x,y,t,1];
+                yt_phase = lattice[x,y,t,1] + lattice[x,plusone(y,Ly),t,2] - lattice[x,y,plusone(t,Lt),1] - lattice[x,y,t,2];
+
+                plaquettes = np.cos(xt_phase) + np.cos(xy_phase) + np.cos(yt_phase);
+
+                plaquette_sum += plaquettes;
+
+    return plaquette_sum / n_plaquettes;
 
 def m_plus(nparray, zero):
     return 0;
@@ -193,19 +216,25 @@ for i in xrange(N_equilibration_configs):
     for x in xrange(Lx):
         for y in xrange(Ly):
             for t in xrange(Lt):
-                lattice[x,y,t,0]=xlink(x,y,t);
-                lattice[x,y,t,1]=ylink(x,y,t);
-                lattice[x,y,t,2]=tlink(x,y,t);
+                lattice[x,y,t,0] = xlink(x,y,t);
+                lattice[x,y,t,1] = ylink(x,y,t);
+                lattice[x,y,t,2] = tlink(x,y,t);
 
 for j in xrange(N_configs):
     for x in xrange(Lx):
         for y in xrange(Ly):
             for t in xrange(Lt):
-                lattice[x,y,t,0]=xlink(x,y,t);
-                lattice[x,y,t,1]=ylink(x,y,t);
-                lattice[x,y,t,2]=tlink(x,y,t);
+                lattice[x,y,t,0] = xlink(x,y,t);
+                lattice[x,y,t,1] = ylink(x,y,t);
+                lattice[x,y,t,2] = tlink(x,y,t);
+
+    # print lattice[:,: ,0,0]
 
     avg_plaquette[j]=plaquette_operator(lattice);
+
+print "mean plaquette = " + np.mean(avg_plaquette)
+
+print "acceptance rate = " + float(n_acceptances)/n_transitions;
 
 #########################################################################################
 #
@@ -214,11 +243,11 @@ for j in xrange(N_configs):
 #
 #########################################################################################
 
-    plus_zero=0;
-    minus_zero=0;
-    flux_zero=0;
-
-    for t in xrange(Lt):
-        jPC_plus[t,j]=m_plus(lattice, plus_zero);
-        jPC_minus[t,j]=m_minus(lattice, minus_zero);
-        wilson_loop[t,j]=flux(lattice, flux_zero);
+    # plus_zero=0;
+    # minus_zero=0;
+    # flux_zero=0;
+    #
+    # for t in xrange(Lt):
+    #     jPC_plus[t,j]=m_plus(lattice, plus_zero);
+    #     jPC_minus[t,j]=m_minus(lattice, minus_zero);
+    #     wilson_loop[t,j]=flux(lattice, flux_zero);
